@@ -1,2 +1,2 @@
 # happiness-data-viz
-“Frontend project for visualizing global happiness data
+Frontend project for visualizing global happiness data
