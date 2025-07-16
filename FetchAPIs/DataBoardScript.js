@@ -19,9 +19,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Map indicator to JSON file
     const indicatorFileMap = {
-        "Education": "../Indicator_data/Education_Indicator.json",
-        "GDP": "../Indicator_data/GDP_Indicator.json",
-        "Economy": "../Indicator_data/Economy_Indicator.json"
+        "Education": "Indicator_data/Education_Indicator.json",
+        "GDP": "Indicator_data/GDP_Indicator.json",
+        "Economy": "Indicator_data/Economy_Indicator.json"
     };
 
     // Populate year dropdowns
