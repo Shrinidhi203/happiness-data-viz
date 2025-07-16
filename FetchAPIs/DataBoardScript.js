@@ -149,6 +149,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     borderWidth: 2
                 }];
                 chart.update();
+            })
+            .catch(error => {
+                console.error('Error fetching indicator data:', error);
             });
     }
 
