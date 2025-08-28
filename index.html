@@ -2,28 +2,534 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Global Happiness Data Visualization</title>
-    <link rel="stylesheet" href="Styles/Styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Happiness Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html, body {
+            font-family: 'Comic Neue', cursive;
+            background-color: #f5f9ff;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 100%;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background-color: white;
+        }
+        
+        .content-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        h1 {
+            color: #0066cc;
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 2px #ccc;
+        }
+        
+        h2 {
+            color: #ff6600;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        
+        .tab {
+            overflow: hidden;
+            border-bottom: 2px solid #ccc;
+            margin-bottom: 1.5em;
+            display: flex;
+            justify-content: center;
+        }
+
+        .tab button {
+            background-color: #e6f2ff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 15px 30px;
+            transition: 0.3s;
+            font-size: 20px;
+            border-radius: 10px 10px 0 0;
+            margin: 0 10px;
+            font-family: 'Comic Neue', cursive;
+            font-weight: bold;
+        }
+
+        .tab button:hover {
+            background-color: #cce6ff;
+        }
+
+        .tab button.active {
+            background-color: #0066cc;
+            color: white;
+            border-bottom: 2px solid #0066cc;
+        }
+
+        .tabcontent {
+            display: none;
+            padding: 20px 0;
+            width: 100%;
+        }
+
+        .tabcontent.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        select, label {
+            font-size: 18px;
+            padding: 10px;
+            margin: 8px;
+            border-radius: 8px;
+            border: 2px solid #cce6ff;
+        }
+        
+        select {
+            background-color: #e6f2ff;
+            cursor: pointer;
+            min-width: 180px;
+        }
+        
+        .controls {
+            background-color: #f0f8ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            transition: all 0.5s ease;
+        }
+        
+        .control-group {
+            margin: 0 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 60vh;
+            width: 100%;
+            margin: 30px 0;
+            transition: all 0.5s ease;
+        }
+        
+        canvas {
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            background-color: white;
+        }
+        
+        .note-box {
+            background-color: #fffde7;
+            border-left: 5px solid #ffd600;
+            padding: 25px;
+            border-radius: 5px;
+            margin-top: 30px;
+            font-size: 18px;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .emoji {
+            font-size: 28px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        /* Updated icon styles */
+        .dashboard-icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+            transition: all 0.5s ease;
+            font-size: 30px;
+        }
+        
+        .globe-icon {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .india-icon {
+            background: linear-gradient(to bottom, #FF9933 33%, white 33%, white 66%, #138808 66%);
+            position: relative;
+        }
+        
+        .india-icon::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #000080;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .title-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+        
+        .title-badge {
+            background-color: #ff6600;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            margin-left: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.5s ease;
+        }
+        
+        #mainTitle {
+            transition: all 0.5s ease;
+        }
+        
+        /* Presentation mode styles */
+        .presentation-mode .controls {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        
+        .presentation-mode .chart-container {
+            height: 70vh;
+        }
+        
+        .presentation-mode #indiaContent {
+            font-size: 22px;
+        }
+        
+        .presentation-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-size: 18px;
+            font-family: 'Comic Neue', cursive;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .presentation-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        .presentation-button .emoji {
+            margin-right: 8px;
+            font-size: 24px;
+        }
+        
+        .help-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-color: #0066cc;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 14px;
+            margin-left: 8px;
+            cursor: help;
+            position: relative;
+        }
+        
+        .help-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 100;
+            font-size: 14px;
+            text-align: left;
+        }
+        
+        .help-icon:hover .help-tooltip {
+            opacity: 1;
+            visibility: visible;
+            bottom: 130%;
+        }
+        
+        .talking-points {
+            background-color: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            border-left: 5px solid #2196F3;
+        }
+        
+        .talking-points h3 {
+            color: #0066cc;
+            margin-bottom: 15px;
+        }
+        
+        .talking-points ol {
+            padding-left: 25px;
+        }
+        
+        .talking-points li {
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group {
+                margin: 10px 0;
+            }
+            
+            .chart-container {
+                height: 50vh;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            h2 {
+                font-size: 22px;
+            }
+            
+            .presentation-button {
+                padding: 10px 15px;
+                font-size: 16px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Global Happiness Data Visualization</h1>
-        <label for="countrySelect">Select a Country:</label>
-        <select id="countrySelect">
-            <option value="India">India</option>
-            <option value="United States">United States</option>
-            <option value="Brazil">Brazil</option>
-        </select>
-
-        <label for="startYearSelect">Start Year:</label>
-        <select id="startYearSelect"></select>
-
-        <label for="endYearSelect">End Year:</label>
-        <select id="endYearSelect"></select>
-        
-        <canvas id="happinessChart" width="600" height="400"></canvas>
+    <div class="container" id="mainContainer">
+        <div class="content-wrapper">
+            <div class="title-container">
+                <div id="dashboardIcon" class="dashboard-icon globe-icon">🌎</div>
+                <h1 id="mainTitle">Global Happiness Dashboard</h1>
+                <span class="title-badge" id="titleBadge">For Students</span>
+            </div>
+            
+            <div class="tab">
+                <button class="tablinks active" id="countriesTabBtn" type="button">🌏 Countries</button>
+                <button class="tablinks" id="indiaTabBtn" type="button">🇮🇳 India</button>
+            </div>
+            
+            <div id="countriesTab" class="tabcontent active">
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="countrySelect">📍 Select a Country:</label>
+                        <select id="countrySelect">
+                            <option value="India">India</option>
+                            <option value="United States">United States</option>
+                            <option value="Brazil">Brazil</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="startYearSelect">📅 Start Year:</label>
+                        <select id="startYearSelect"></select>
+                    </div>
+                    <div class="control-group">
+                        <label for="endYearSelect">📅 End Year:</label>
+                        <select id="endYearSelect"></select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="happinessChart"></canvas>
+                </div>
+            </div>
+            
+            <div id="indiaTab" class="tabcontent">
+                <h2>🇮🇳 India's Happiness Story</h2>
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="indiaIndicatorSelect">
+                            📊 Choose What Affects Happiness:
+                            <span class="help-icon">?
+                                <span class="help-tooltip">These are things that might make people in India happier or less happy. The chart will show how they relate to happiness.</span>
+                            </span>
+                        </label>
+                        <select id="indiaIndicatorSelect">
+                            <option value="Freedom">🗽 Freedom to make choices</option>
+                            <option value="GDP_per_capita">💵 Money per person</option>
+                            <option value="Social_support">👪 Support from family & friends</option>
+                            <option value="Generosity">🎁 Generosity</option>
+                            <option value="Health">🏥 Health</option>
+                            <option value="GDP_Growth">📈 GDP Growth</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="indiaStartYearSelect">📅 Start Year:</label>
+                        <select id="indiaStartYearSelect"></select>
+                    </div>
+                    <div class="control-group">
+                        <label for="indiaEndYearSelect">📅 End Year:</label>
+                        <select id="indiaEndYearSelect"></select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="indiaChart"></canvas>
+                </div>
+                <div id="indiaContent" class="note-box"></div>
+                
+                <div class="talking-points" id="talkingPoints">
+                    <h3>📝 My Presentation to PM Modi</h3>
+                    <ol>
+                        <li><strong>Introduction:</strong> "Good morning, Honorable Prime Minister Modi. I'm excited to show you what makes Indians happy, based on data from the World Happiness Report."</li>
+                        <li><strong>Show the chart:</strong> "This chart shows India's happiness score in blue and how it relates to different factors."</li>
+                        <li><strong>Explain the findings:</strong> "We discovered that freedom to make choices has the strongest connection to happiness in India, followed by money per person and support from family and friends."</li>
+                        <li><strong>Suggest ideas:</strong> "Policies that give people more freedom of choice, improve the economy, and strengthen family bonds could make India happier!"</li>
+                        <li><strong>Ask for questions:</strong> "Do you have any questions about our findings, sir?"</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
     </div>
+    
+    <button class="presentation-button" id="presentationModeBtn">
+        <span class="emoji">🎬</span> Presentation Mode
+    </button>
+    
+    <script>
+        // Tab switching logic with dynamic title
+        document.addEventListener("DOMContentLoaded", function () {
+            const countriesTabBtn = document.getElementById("countriesTabBtn");
+            const indiaTabBtn = document.getElementById("indiaTabBtn");
+            const countriesTab = document.getElementById("countriesTab");
+            const indiaTab = document.getElementById("indiaTab");
+            const mainTitle = document.getElementById("mainTitle");
+            const dashboardIcon = document.getElementById("dashboardIcon");
+            const titleBadge = document.getElementById("titleBadge");
+            const presentationModeBtn = document.getElementById("presentationModeBtn");
+            const mainContainer = document.getElementById("mainContainer");
+            const talkingPoints = document.getElementById("talkingPoints");
+
+            function showTab(tabName) {
+                if (tabName === "countries") {
+                    countriesTab.classList.add("active");
+                    indiaTab.classList.remove("active");
+                    countriesTabBtn.classList.add("active");
+                    indiaTabBtn.classList.remove("active");
+                    
+                    // Update title for Countries tab
+                    mainTitle.textContent = "Global Happiness Dashboard";
+                    dashboardIcon.className = "dashboard-icon globe-icon";
+                    dashboardIcon.innerHTML = "🌎";
+                    titleBadge.textContent = "For Students";
+                    
+                    // Update document title
+                    document.title = "Global Happiness Dashboard";
+                    
+                    // Hide presentation button on Countries tab
+                    presentationModeBtn.style.display = "none";
+                } else {
+                    countriesTab.classList.remove("active");
+                    indiaTab.classList.add("active");
+                    countriesTabBtn.classList.remove("active");
+                    indiaTabBtn.classList.add("active");
+                    
+                    // Update title for India tab
+                    mainTitle.textContent = "India's Happiness Dashboard";
+                    dashboardIcon.className = "dashboard-icon india-icon";
+                    dashboardIcon.innerHTML = "";  // Clear content as we're using CSS for the flag
+                    titleBadge.textContent = "For PM Modi";
+                    
+                    // Update document title
+                    document.title = "India's Happiness Dashboard";
+                    
+                    // Show presentation button on India tab
+                    presentationModeBtn.style.display = "flex";
+                }
+            }
+
+            countriesTabBtn.addEventListener("click", function () {
+                showTab("countries");
+            });
+            indiaTabBtn.addEventListener("click", function () {
+                showTab("india");
+            });
+            
+            // Presentation mode toggle
+            presentationModeBtn.addEventListener("click", function() {
+                mainContainer.classList.toggle("presentation-mode");
+                
+                if (mainContainer.classList.contains("presentation-mode")) {
+                    presentationModeBtn.innerHTML = '<span class="emoji">🔙</span> Exit Presentation';
+                    talkingPoints.style.display = "block";
+                } else {
+                    presentationModeBtn.innerHTML = '<span class="emoji">🎬</span> Presentation Mode';
+                    talkingPoints.style.display = "none";
+                }
+            });
+            
+            // Initially hide talking points
+            talkingPoints.style.display = "none";
+            
+            // Set initial title based on active tab
+            if (indiaTab.classList.contains("active")) {
+                showTab("india");
+            } else {
+                showTab("countries");
+            }
+        });
+    </script>
     <script src="FetchAPIs/DataBoardScript.js"></script>
 </body>
 </html>
